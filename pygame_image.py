@@ -6,6 +6,7 @@ import random
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+
 def gameover(screen):
     """
     引数screen
@@ -22,6 +23,7 @@ def gameover(screen):
     pg.display.update()
     time.sleep(3)
 
+
 class Human():
     img0 = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
     img=pg.transform.flip(img0, True, False)
@@ -29,14 +31,14 @@ class Human():
     def __init__(self,xy:tuple[int, int]):
         super().__init__()
         self.img = __class__.img
-        self.rect: pg.Rect = self.img.get_rect()
-        self.rect.center = xy
+        self.rct: pg.Rect = self.img.get_rect()
+        self.rct.center = xy
         self.count=0
         self.human_plasey=0
 
     def update(self, human_plasex:int, human_plasey:int,screen: pg.Surface):
-        self.rect.move_ip(human_plasex,human_plasey)
-        screen.blit(self.img, self.rect)
+        self.rct.move_ip(human_plasex,human_plasey)
+        screen.blit(self.img, self.rct)
 
     def time_(self,y_Flag):
         if y_Flag[0] == "Default":
@@ -76,18 +78,20 @@ class Human():
                 self.count+=1
         return self.human_plasey, y_Flag
 
+
 class Block_Rock(pg.sprite.Sprite):
     def __init__(self, xy):
         super().__init__()
         self.vx, self.vy = xy
         self.image = pg.transform.rotozoom(pg.image.load("fig/block.png"), 0, 1.0)
         self.rect = self.image.get_rect(center=(self.vx, self.vy))
-        self.speed = 4  # 誤字を修正
+        self.speed = 5  # 誤字を修正
 
     def update(self):
         self.rect.centery += self.speed  # 下に移動
         if self.rect.top >= 800:
             self.kill()
+
 
 class Block_Logg(pg.sprite.Sprite):
     def __init__(self, y=-200):
@@ -100,6 +104,7 @@ class Block_Logg(pg.sprite.Sprite):
         self.rect.centery += self.speed
         if self.rect.top >= 800:
             self.kill()
+
 
 class Gorilla(pg.sprite.Sprite):
     """
@@ -117,7 +122,7 @@ class Gorilla(pg.sprite.Sprite):
 
     def update(self):
         self.count+=1
-        if self.count>=60:
+        if self.count>=10:
             self.kill()
             self.count=0
 
@@ -127,7 +132,7 @@ class Arrow(pg.sprite.Sprite):
         self.vx, self.vy = xy
         self.image = pg.transform.rotozoom(pg.image.load("fig/yari.png"), 0, 0.2)
         self.rect = self.image.get_rect(center=(self.vx, self.vy))
-        self.speed = 2
+        self.speed = 5
 
     def update(self):
         self.rect.centery -= self.speed  # 上に移動
@@ -149,7 +154,7 @@ class Items(pg.sprite.Sprite):
             self.kill()
 
 
-class BACKGROUND():
+class BackGround():
     """
     背景のスクロール速度と道のスクロール速度の
     制御に関するプログラムを記述
@@ -182,31 +187,6 @@ class BACKGROUND():
         screen.blit(self.road_img, [75, self.ro_y])
         screen.blit(self.road_img, [75, self.ro_y - 800])
 
-class Score:
-    """
-    スコアに関するクラス
-    """
-    def __init__(self):
-        """
-        フォントを設定
-        文字列Surfaceを生成する
-        """
-        self.fonto = pg.font.SysFont("hgp創英角ポップ体",60)
-        self.coler=(0,0,255)
-        self.score=0
-        self.img = self.fonto.render(f"{self.score}",0,self.coler)
-        self.center=(50,800-150)
-
-    def update(self,screen:pg.surface,get=0):#Score.update(?)で？に数字いれる入れたら
-        """
-        現在のスコアを生成
-        スクリーンbilt
-        """
-        self.score+=get
-        self.img=self.fonto.render(f"{self.score}",0,self.coler)
-        self.rct=self.img.get_rect()
-        self.rct.center=(self.center)
-        screen.blit(self.img,self.rct)
 
 def main():
     pg.display.set_caption("はばたけ！こうかとん")
@@ -218,14 +198,13 @@ def main():
     gorira=pg.sprite.Group()
     arrow=pg.sprite.Group()
     coin=pg.sprite.Group()
-    load = BACKGROUND()
+    load = BackGround()
     block=pg.sprite.Group()
     terr=pg.sprite.Group()
-    score=Score()
     tmr = 0
     human_TF=[False,False] # 最初が左　後ろが右
     y_Flag=["Default","Default"]
-    yari_Flag=False
+
     while True:
         human_plasex=0
         for event in pg.event.get():
@@ -253,29 +232,13 @@ def main():
                     if y_Flag[0]=="Default":
                         if y_Flag[1]=="Default":
                             y_Flag[1]="Active"
-                if event.type == pg.KEYDOWN and event.key == pg.K_a:
-                    yari_Flag=True
-                elif event.type == pg.KEYDOWN and event.key == pg.K_d:
-                    yari_Flag=False
-        if len(pg.sprite.spritecollide(human, coin, True)) != 0:
-            score.update(screen,1)
-        if len(pg.sprite.spritecollide(human, block, True)) != 0:
-            gameover(screen)
-            return
-        if len(pg.sprite.spritecollide(human, arrow, True)) != 0:
-            gameover(screen)
-            return
-        if y_Flag == ["Default","Default"]:
-            if len(pg.sprite.spritecollide(human, terr, True)) != 0:
-                gameover(screen)
-                return
+
         #update群
         load.update(screen)
-        if yari_Flag==True:
-            if tmr%1001==0:
-                arrow_xy=(random.choice([180,300,420]),700)
-                arrow.add(Arrow(arrow_xy))
-                gorira.add(Gorilla(arrow_xy))
+        if tmr%200==0:
+            arrow_xy=(random.choice([180,300,420]),700)
+            arrow.add(Arrow(arrow_xy))
+            gorira.add(Gorilla(arrow_xy))
         if tmr%50==0:
             coin_xy=(random.choice([180,300,420]),0)
             coin.add(Items(coin_xy))
@@ -283,7 +246,7 @@ def main():
             block_xy=(random.choice([180,300,420]),0)
             block.add(Block_Rock(block_xy))
         if tmr%500==0:
-            terr.add(Block_Logg())
+            block.add(Block_Logg())
         arrow.update()
         arrow.draw(screen)
         coin.update()
@@ -296,7 +259,6 @@ def main():
         gorira.draw(screen)
         human_plasey,y_Flag = human.time_(y_Flag)
         human.update(human_plasex,human_plasey,screen)
-        score.update(screen)
         pg.display.update()
         tmr += 1
         clock.tick(200)
